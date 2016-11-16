@@ -3,6 +3,7 @@ package file
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 
@@ -111,7 +112,7 @@ func (f File) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (i
 // Name implements the Handler interface.
 func (f File) Name() string { return "file" }
 
-// Parse parses the zone in filename and returns a new Zone or an error.
+// Parse parses the zone in f using filename and returns a new Zone or an error.
 func Parse(f io.Reader, origin, fileName string) (*Zone, error) {
 	tokens := dns.ParseZone(f, dns.Fqdn(origin), fileName)
 	z := NewZone(origin, fileName)
@@ -125,4 +126,29 @@ func Parse(f io.Reader, origin, fileName string) (*Zone, error) {
 		}
 	}
 	return z, nil
+}
+
+// ParseUntilSOA parses the zone f and returns the SOA serial. It will only look at the
+// first 10 records.
+func ParseUntilSOA(f io.Reader, origin, fileName string) (serial uint32, err error) {
+	tokens := dns.ParseZone(f, dns.Fqdn(origin), fileName)
+
+	i := 0
+	const max = 10
+
+	for x := range tokens {
+		if x.Error != nil {
+			return 0, x.Error
+		}
+		if v, ok := x.RR.(*dns.SOA); ok {
+			return v.Serial, nil
+		}
+
+		i++
+		if i > max {
+			break
+		}
+	}
+	return 0, fmt.Errorf("no SOA record found in %q", fileName)
+
 }
