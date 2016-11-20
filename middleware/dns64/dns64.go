@@ -26,7 +26,7 @@ func (d Dns64) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 }
 
 // Name implements the Handler interface.
-func (c Dns64) Name() string { return "dns64" }
+func (d Dns64) Name() string { return "dns64" }
 
 // ResponseWriter is a response writer that implements DNS64, when an AAAA query returns
 // NODATA, it will try and fetch any A records and synthesize the AAAA records on the fly.
