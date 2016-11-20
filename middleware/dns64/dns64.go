@@ -36,12 +36,7 @@ type ResponseWriter struct {
 
 // WriteMsg implements the dns.ResponseWriter interface.
 func (r *ResponseWriter) WriteMsg(res *dns.Msg) error {
-	ty, _ := response.Typify(res)
-	// PTR records.
-	if ty != response.NoData {
-		return r.ResponseWriter.WriteMsg(res)
-	}
-
+	// Only respond with this when the request came in over IPv6.
 	v4 := false
 	if ip, ok := r.RemoteAddr().(*net.UDPAddr); ok {
 		v4 = ip.IP.To4() != nil
@@ -49,8 +44,13 @@ func (r *ResponseWriter) WriteMsg(res *dns.Msg) error {
 	if ip, ok := r.RemoteAddr().(*net.TCPAddr); ok {
 		v4 = ip.IP.To4() != nil
 	}
-
 	if v4 { // if it came in over v4, don't do anything.
+		return r.ResponseWriter.WriteMsg(res)
+	}
+
+	ty, _ := response.Typify(res)
+	// PTR records.
+	if ty != response.NoData {
 		return r.ResponseWriter.WriteMsg(res)
 	}
 
@@ -69,3 +69,5 @@ func (r *ResponseWriter) Hijack() {
 	r.ResponseWriter.Hijack()
 	return
 }
+
+const pref64 = "64:ff9b::" // /9
