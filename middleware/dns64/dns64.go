@@ -13,20 +13,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Dns64 performs DNS64.
-type Dns64 struct {
+// DNS64 performs DNS64.
+type DNS64 struct {
 	Next  middleware.Handler
 	Proxy proxy.Proxy
 }
 
 // ServeDNS implements the middleware.Handler interface.
-func (d Dns64) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (d DNS64) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 	drr := &ResponseWriter{w}
 	return d.Next.ServeDNS(ctx, drr, r)
 }
 
 // Name implements the Handler interface.
-func (d Dns64) Name() string { return "dns64" }
+func (d DNS64) Name() string { return "dns64" }
 
 // ResponseWriter is a response writer that implements DNS64, when an AAAA query returns
 // NODATA, it will try and fetch any A records and synthesize the AAAA records on the fly.
