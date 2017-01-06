@@ -15,8 +15,8 @@ type dnsUpstream struct {
 
 // ServeDNS does not satisfy middleware.Handler, instead it interacts with the upstream
 // and returns the respons or an error.
-func (d *dnsUpstream) Exchange(w dns.ResponseWriter, r *dns.Msg, address string) (*dns.Msg, error) {
-	co, err := net.DialTimeout(request.Proto(w), address, defaultTimeout)
+func (d *dnsUpstream) Exchange(w dns.ResponseWriter, r *dns.Msg, u *UpstreamHost) (*dns.Msg, error) {
+	co, err := net.DialTimeout(request.Proto(w), u.Name, defaultTimeout) // TODO(miek): timeout
 	if err != nil {
 		return nil, err
 	}

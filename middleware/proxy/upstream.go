@@ -36,12 +36,6 @@ type staticUpstream struct {
 	}
 	WithoutPathPrefix string
 	IgnoredSubDomains []string
-	options           Options
-}
-
-// Options ...
-type Options struct {
-	Ecs []*net.IPNet // EDNS0 CLIENT SUBNET address (v4/v6) to add in CIDR notaton.
 }
 
 // NewStaticUpstreams parses the configuration input and sets up
@@ -121,10 +115,6 @@ func RegisterPolicy(name string, policy func() Policy) {
 
 func (u *staticUpstream) From() string {
 	return u.from
-}
-
-func (u *staticUpstream) Options() Options {
-	return u.options
 }
 
 func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {

@@ -29,8 +29,6 @@ type Upstream interface {
 	Select() *UpstreamHost
 	// Checks if subpdomain is not an ignored.
 	IsAllowedPath(string) bool
-	// Options returns the options set for this upstream
-	Options() Options
 }
 
 // UpstreamHostDownFunc can be used to customize how Down behaves.
@@ -83,7 +81,7 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 			atomic.AddInt64(&host.Conns, 1)
 
-			reply, backendErr := host.Exchange(w, r, host.Name)
+			reply, backendErr := host.Exchange(w, r, host)
 
 			atomic.AddInt64(&host.Conns, -1)
 

@@ -89,7 +89,7 @@ func (p Proxy) lookup(state request.Request, r *dns.Msg) (*dns.Msg, error) {
 
 			atomic.AddInt64(&host.Conns, 1)
 
-			reply, backendErr := host.Exchange(state.W, r, host.Name)
+			reply, backendErr := host.Exchange(state.W, r, host)
 
 			atomic.AddInt64(&host.Conns, -1)
 
