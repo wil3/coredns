@@ -17,7 +17,6 @@ var errUnreachable = errors.New("unreachable backend")
 // Proxy represents a middleware instance that can proxy requests to another DNS server.
 type Proxy struct {
 	Next      middleware.Handler
-	Client    *client
 	Upstreams []Upstream
 }
 
@@ -46,6 +45,8 @@ type UpstreamHost struct {
 	Unhealthy         bool
 	CheckDown         UpstreamHostDownFunc
 	WithoutPathPrefix string
+
+	Exchanger
 }
 
 // Down checks whether the upstream host is down or not.
@@ -82,7 +83,7 @@ func (p Proxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 			atomic.AddInt64(&host.Conns, 1)
 
-			reply, backendErr := p.Client.ServeDNS(w, r, host)
+			reply, backendErr := host.Exchange(w, r, host.Name)
 
 			atomic.AddInt64(&host.Conns, -1)
 

@@ -13,7 +13,7 @@ import (
 
 // New create a new proxy with the hosts in host and a Random policy.
 func New(hosts []string) Proxy {
-	p := Proxy{Next: nil, Client: newClient()}
+	p := Proxy{}
 
 	upstream := &staticUpstream{
 		from:        "",
@@ -84,7 +84,7 @@ func (p Proxy) lookup(state request.Request, r *dns.Msg) (*dns.Msg, error) {
 
 			atomic.AddInt64(&host.Conns, 1)
 
-			reply, backendErr := p.Client.ServeDNS(state.W, r, host)
+			reply, backendErr := host.Exchange(state.W, r, host.Name)
 
 			atomic.AddInt64(&host.Conns, -1)
 
