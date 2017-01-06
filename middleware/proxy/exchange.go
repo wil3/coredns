@@ -1,7 +1,11 @@
 package proxy
 
-import "github.com/miekg/dns"
+import (
+	"github.com/miekg/coredns/request"
+
+	"github.com/miekg/dns"
+)
 
 type Exchanger interface {
-	Exchange(dns.ResponseWriter, *dns.Msg, *UpstreamHost) (*dns.Msg, error)
+	Exchange(request.Request, *UpstreamHost) (*dns.Msg, error)
 }
