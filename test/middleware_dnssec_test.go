@@ -6,15 +6,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/miekg/coredns/middleware/test"
+	"github.com/coredns/coredns/middleware/test"
 
 	"github.com/miekg/dns"
 )
 
 func TestLookupBalanceRewriteCacheDnssec(t *testing.T) {
+	t.Parallel()
 	name, rm, err := test.TempFile(".", exampleOrg)
 	if err != nil {
-		t.Fatalf("failed to created zone: %s", err)
+		t.Fatalf("failed to create zone: %s", err)
 	}
 	defer rm()
 	rm1 := createKeyFile(t)
@@ -22,7 +23,7 @@ func TestLookupBalanceRewriteCacheDnssec(t *testing.T) {
 
 	corefile := `example.org:0 {
     file ` + name + `
-    rewrite ANY HINFO
+    rewrite type ANY HINFO
     dnssec {
         key file ` + base + `
     }

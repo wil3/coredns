@@ -1,7 +1,7 @@
 package dnsserver
 
 import (
-	"github.com/miekg/coredns/middleware"
+	"github.com/coredns/coredns/middleware"
 
 	"github.com/mholt/caddy"
 )
@@ -20,6 +20,9 @@ type Config struct {
 	// Root points to a base directory we we find user defined "things".
 	// First consumer is the file middleware to looks for zone files in this place.
 	Root string
+
+	// Server is the server that handles this config
+	Server *Server
 
 	// Middleware stack.
 	Middleware []middleware.Middleware

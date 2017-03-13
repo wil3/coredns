@@ -5,17 +5,18 @@ import (
 	"log"
 	"testing"
 
-	"github.com/miekg/coredns/middleware/proxy"
-	"github.com/miekg/coredns/middleware/test"
-	"github.com/miekg/coredns/request"
+	"github.com/coredns/coredns/middleware/proxy"
+	"github.com/coredns/coredns/middleware/test"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 )
 
 func TestLookupProxy(t *testing.T) {
+	t.Parallel()
 	name, rm, err := test.TempFile(".", exampleOrg)
 	if err != nil {
-		t.Fatalf("failed to created zone: %s", err)
+		t.Fatalf("failed to create zone: %s", err)
 	}
 	defer rm()
 
@@ -37,7 +38,7 @@ func TestLookupProxy(t *testing.T) {
 
 	log.SetOutput(ioutil.Discard)
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
 	resp, err := p.Lookup(state, "example.org.", dns.TypeA)
 	if err != nil {
@@ -81,7 +82,7 @@ func BenchmarkLookupProxy(b *testing.B) {
 
 	log.SetOutput(ioutil.Discard)
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
 
 	b.ResetTimer()

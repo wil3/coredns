@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -10,8 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/miekg/coredns/middleware"
-	"github.com/miekg/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware/pkg/tls"
 
 	"github.com/mholt/caddy/caddyfile"
 	"github.com/miekg/dns"
@@ -36,12 +38,7 @@ type staticUpstream struct {
 	}
 	WithoutPathPrefix string
 	IgnoredSubDomains []string
-	options           Options
-}
-
-// Options ...
-type Options struct {
-	Ecs []*net.IPNet // EDNS0 CLIENT SUBNET address (v4/v6) to add in CIDR notaton.
+	ex                Exchanger
 }
 
 // NewStaticUpstreams parses the configuration input and sets up
@@ -50,12 +47,13 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 	var upstreams []Upstream
 	for c.Next() {
 		upstream := &staticUpstream{
-			from:        "",
+			from:        ".",
 			Hosts:       nil,
 			Policy:      &Random{},
 			Spray:       nil,
 			FailTimeout: 10 * time.Second,
 			MaxFails:    1,
+			ex:          newDNSEx(),
 		}
 
 		if !c.Args(&upstream.from) {
@@ -102,6 +100,7 @@ func NewStaticUpstreams(c *caddyfile.Dispenser) ([]Upstream, error) {
 				}(upstream),
 				WithoutPathPrefix: upstream.WithoutPathPrefix,
 			}
+
 			upstream.Hosts[i] = uh
 		}
 
@@ -120,10 +119,6 @@ func RegisterPolicy(name string, policy func() Policy) {
 
 func (u *staticUpstream) From() string {
 	return u.from
-}
-
-func (u *staticUpstream) Options() Options {
-	return u.options
 }
 
 func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
@@ -188,6 +183,34 @@ func parseBlock(c *caddyfile.Dispenser, u *staticUpstream) error {
 		u.IgnoredSubDomains = ignoredDomains
 	case "spray":
 		u.Spray = &Spray{}
+	case "protocol":
+		encArgs := c.RemainingArgs()
+		if len(encArgs) == 0 {
+			return c.ArgErr()
+		}
+		switch encArgs[0] {
+		case "dns":
+			u.ex = newDNSEx()
+		case "https_google":
+			boot := []string{"8.8.8.8:53", "8.8.4.4:53"}
+			if len(encArgs) > 2 && encArgs[1] == "bootstrap" {
+				boot = encArgs[2:]
+			}
+
+			u.ex = newGoogle("", boot) // "" for default in google.go
+		case "grpc":
+			if len(encArgs) == 2 && encArgs[1] == "insecure" {
+				u.ex = newGrpcClient(nil, u)
+				return nil
+			}
+			tls, err := tls.NewTLSConfigFromArgs(encArgs[1:]...)
+			if err != nil {
+				return err
+			}
+			u.ex = newGrpcClient(tls, u)
+		default:
+			return fmt.Errorf("%s: %s", errInvalidProtocol, encArgs[0])
+		}
 
 	default:
 		return c.Errf("unknown property '%s'", c.Val())
@@ -268,14 +291,17 @@ func (u *staticUpstream) Select() *UpstreamHost {
 	return u.Spray.Select(pool)
 }
 
-func (u *staticUpstream) IsAllowedPath(name string) bool {
+func (u *staticUpstream) IsAllowedDomain(name string) bool {
+	if dns.Name(name) == dns.Name(u.From()) {
+		return true
+	}
+
 	for _, ignoredSubDomain := range u.IgnoredSubDomains {
-		if dns.Name(name) == dns.Name(u.From()) {
-			return true
-		}
-		if middleware.Name(name).Matches(ignoredSubDomain + u.From()) {
+		if middleware.Name(ignoredSubDomain).Matches(name) {
 			return false
 		}
 	}
 	return true
 }
+
+func (u *staticUpstream) Exchanger() Exchanger { return u.ex }

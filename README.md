@@ -1,13 +1,13 @@
 # CoreDNS
 
-[![Documentation](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/miekg/coredns)
-[![Build Status](https://img.shields.io/travis/miekg/coredns.svg?style=flat-square&label=build)](https://travis-ci.org/miekg/coredns)
-[![Code Coverage](https://codecov.io/github/miekg/coredns/coverage.svg?branch=master)](https://codecov.io/github/miekg/coredns?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/miekg/coredns)](https://goreportcard.com/report/github.com/miekg/coredns)
+[![Documentation](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/coredns/coredns)
+[![Build Status](https://img.shields.io/travis/coredns/coredns.svg?style=flat-square&label=build)](https://travis-ci.org/coredns/coredns)
+[![Code Coverage](https://img.shields.io/codecov/c/github/coredns/coredns/master.svg?style=flat-square)](https://codecov.io/github/coredns/coredns?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/coredns/coredns?style=flat-square)](https://goreportcard.com/report/coredns/coredns)
 
 CoreDNS is a DNS server that started as a fork of [Caddy](https://github.com/mholt/caddy/). It has the
 same model: it chains middleware. In fact it's so similar that CoreDNS is now a server type plugin for
-Caddy.
+Caddy. CoreDNS is also a [Cloud Native Computing Foundation](https://cncf.io) inception level project.
 
 CoreDNS is the successor to [SkyDNS](https://github.com/skynetservices/skydns). SkyDNS is a thin
 layer that exposes services in etcd in the DNS. CoreDNS builds on this idea and is a generic DNS
@@ -41,10 +41,10 @@ Each of the middlewares has a README.md of its own.
 
 ## Status
 
-CoreDNS can be used as a authoritative nameserver for your domains, and should be stable enough to
+CoreDNS can be used as an authoritative nameserver for your domains, and should be stable enough to
 provide you with good DNS(SEC) service.
 
-There are still few [issues](https://github.com/miekg/coredns/issues), and work is ongoing on making
+There are still a few known [issues](https://github.com/coredns/coredns/issues), and work is ongoing on making
 things fast and to reduce the memory usage.
 
 All in all, CoreDNS should be able to provide you with enough functionality to replace parts of BIND
@@ -141,20 +141,40 @@ nameserver *and* rewrite ANY queries to HINFO.
 }
 ~~~
 
+### Zone Specification
 
-## What Remains To Be Done
+The following Corefile fragment is legal, but does not explicitly define a zone to listen on:
 
-* Optimizations.
-* Load testing.
-* The [issues](https://github.com/miekg/coredns/issues).
+~~~ txt
+{
+   # ...
+}
+~~~
 
+This defaults to `.:53` (or whatever `-dns.port` is).
+
+The next one only defines a port:
+~~~ txt
+:123 {
+    # ...
+}
+~~~
+This defaults to the root zone `.`, but can't be overruled with the `-dns.port` flag.
+
+Just specifying a zone, default to listening on port 53 (can still be overridden with `-dns.port`:
+
+~~~ txt
+example.org {
+    # ...
+}
+~~~
 
 ## Blog and Contact
 
 Website: <https://coredns.io>
 Twitter: [@corednsio](https://twitter.com/corednsio)
 Docs: <https://miek.nl/tags/coredns/>
-Github: <https://github.com/miekg/coredns>
+Github: <https://github.com/coredns/coredns>
 
 
 ## Systemd Service File

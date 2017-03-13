@@ -8,14 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/miekg/coredns/middleware/proxy"
-	"github.com/miekg/coredns/middleware/test"
-	"github.com/miekg/coredns/request"
+	"github.com/coredns/coredns/middleware/proxy"
+	"github.com/coredns/coredns/middleware/test"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 )
 
 func TestAuto(t *testing.T) {
+	t.Parallel()
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "coredns")
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +42,7 @@ func TestAuto(t *testing.T) {
 
 	log.SetOutput(ioutil.Discard)
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
 
 	resp, err := p.Lookup(state, "www.example.org.", dns.TypeA)
@@ -81,6 +82,7 @@ func TestAuto(t *testing.T) {
 }
 
 func TestAutoNonExistentZone(t *testing.T) {
+	t.Parallel()
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "coredns")
 	if err != nil {
 		t.Fatal(err)
@@ -106,7 +108,7 @@ func TestAutoNonExistentZone(t *testing.T) {
 	}
 	defer i.Stop()
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &test.ResponseWriter{}, Req: new(dns.Msg)}
 
 	resp, err := p.Lookup(state, "example.org.", dns.TypeA)
@@ -119,6 +121,7 @@ func TestAutoNonExistentZone(t *testing.T) {
 }
 
 func TestAutoAXFR(t *testing.T) {
+	t.Parallel()
 	log.SetOutput(ioutil.Discard)
 
 	tmpdir, err := ioutil.TempDir(os.TempDir(), "coredns")
@@ -152,7 +155,7 @@ func TestAutoAXFR(t *testing.T) {
 
 	time.Sleep(1100 * time.Millisecond) // wait for it to be picked up
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	m := new(dns.Msg)
 	m.SetAxfr("example.org.")
 	state := request.Request{W: &test.ResponseWriter{}, Req: m}

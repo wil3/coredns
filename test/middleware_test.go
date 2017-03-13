@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/miekg/coredns/middleware/test"
+	"github.com/coredns/coredns/middleware/test"
 
 	"github.com/miekg/dns"
 )
@@ -14,13 +14,13 @@ func benchmarkLookupBalanceRewriteCache(b *testing.B) {
 	t := new(testing.T)
 	name, rm, err := test.TempFile(".", exampleOrg)
 	if err != nil {
-		t.Fatalf("failed to created zone: %s", err)
+		t.Fatalf("failed to create zone: %s", err)
 	}
 	defer rm()
 
 	corefile := `example.org:0 {
     file ` + name + `
-    rewrite ANY HINFO
+    rewrite type ANY HINFO
     loadbalance
 }
 `

@@ -3,25 +3,27 @@ package proxy
 // functions other middleware might want to use to do lookup in the same style as the proxy.
 
 import (
+	"context"
 	"sync/atomic"
 	"time"
 
-	"github.com/miekg/coredns/request"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 )
 
-// New create a new proxy with the hosts in host and a Random policy.
-func New(hosts []string) Proxy {
-	p := Proxy{Next: nil, Client: newClient()}
+// NewLookup create a new proxy with the hosts in host and a Random policy.
+func NewLookup(hosts []string) Proxy {
+	p := Proxy{Next: nil}
 
 	upstream := &staticUpstream{
-		from:        "",
+		from:        ".",
 		Hosts:       make([]*UpstreamHost, len(hosts)),
 		Policy:      &Random{},
 		Spray:       nil,
 		FailTimeout: 10 * time.Second,
-		MaxFails:    1,
+		MaxFails:    3, // TODO(miek): disable error checking for simple lookups?
+		ex:          newDNSEx(),
 	}
 
 	for i, host := range hosts {
@@ -48,7 +50,7 @@ func New(hosts []string) Proxy {
 		}
 		upstream.Hosts[i] = uh
 	}
-	p.Upstreams = []Upstream{upstream}
+	p.Upstreams = &[]Upstream{upstream}
 	return p
 }
 
@@ -59,16 +61,22 @@ func (p Proxy) Lookup(state request.Request, name string, typ uint16) (*dns.Msg,
 	req.SetQuestion(name, typ)
 	state.SizeAndDo(req)
 
-	return p.lookup(state, req)
+	state2 := request.Request{W: state.W, Req: req}
+
+	return p.lookup(state2)
 }
 
 // Forward forward the request in state as-is. Unlike Lookup that adds EDNS0 suffix to the message.
 func (p Proxy) Forward(state request.Request) (*dns.Msg, error) {
-	return p.lookup(state, state.Req)
+	return p.lookup(state)
 }
 
-func (p Proxy) lookup(state request.Request, r *dns.Msg) (*dns.Msg, error) {
-	for _, upstream := range p.Upstreams {
+func (p Proxy) lookup(state request.Request) (*dns.Msg, error) {
+	upstream := p.match(state)
+	if upstream == nil {
+		return nil, errInvalidDomain
+	}
+	for {
 		start := time.Now()
 
 		// Since Select() should give us "up" hosts, keep retrying
@@ -80,11 +88,11 @@ func (p Proxy) lookup(state request.Request, r *dns.Msg) (*dns.Msg, error) {
 			}
 
 			// duplicated from proxy.go, but with a twist, we don't write the
-			// reply back to the client, we return it.
+			// reply back to the client, we return it and there is no monitoring.
 
 			atomic.AddInt64(&host.Conns, 1)
 
-			reply, backendErr := p.Client.ServeDNS(state.W, r, host)
+			reply, backendErr := upstream.Exchanger().Exchange(context.TODO(), host.Name, state)
 
 			atomic.AddInt64(&host.Conns, -1)
 
@@ -103,5 +111,4 @@ func (p Proxy) lookup(state request.Request, r *dns.Msg) (*dns.Msg, error) {
 		}
 		return nil, errUnreachable
 	}
-	return nil, errUnreachable
 }

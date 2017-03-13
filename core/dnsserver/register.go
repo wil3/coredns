@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/miekg/coredns/middleware"
+	"github.com/coredns/coredns/middleware"
 
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyfile"
@@ -140,3 +140,5 @@ var (
 	// GracefulTimeout is the maximum duration of a graceful shutdown.
 	GracefulTimeout time.Duration
 )
+
+var _ caddy.GracefulServer = new(Server)

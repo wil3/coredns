@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/miekg/coredns/middleware/etcd/msg"
-	"github.com/miekg/coredns/middleware/proxy"
+	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/middleware/proxy"
 
 	"github.com/miekg/dns"
 )
@@ -67,7 +67,7 @@ Services:
 	}
 
 	for domain, nss := range nameservers {
-		stubmap[domain] = proxy.New(nss)
+		stubmap[domain] = proxy.NewLookup(nss)
 	}
 	// atomic swap (at least that's what we hope it is)
 	if len(stubmap) > 0 {

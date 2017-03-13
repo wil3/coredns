@@ -6,9 +6,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/miekg/coredns/middleware/proxy"
-	mtest "github.com/miekg/coredns/middleware/test"
-	"github.com/miekg/coredns/request"
+	"github.com/coredns/coredns/middleware/proxy"
+	mtest "github.com/coredns/coredns/middleware/test"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 )
@@ -32,9 +32,10 @@ var dsTestCases = []mtest.Case{
 }
 
 func TestLookupDS(t *testing.T) {
+	t.Parallel()
 	name, rm, err := TempFile(".", miekNL)
 	if err != nil {
-		t.Fatalf("failed to created zone: %s", err)
+		t.Fatalf("failed to create zone: %s", err)
 	}
 	defer rm()
 
@@ -56,7 +57,7 @@ func TestLookupDS(t *testing.T) {
 
 	log.SetOutput(ioutil.Discard)
 
-	p := proxy.New([]string{udp})
+	p := proxy.NewLookup([]string{udp})
 	state := request.Request{W: &mtest.ResponseWriter{}, Req: new(dns.Msg)}
 
 	for _, tc := range dsTestCases {

@@ -9,11 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/miekg/coredns/middleware/etcd/msg"
-	"github.com/miekg/coredns/middleware/pkg/dnsrecorder"
-	"github.com/miekg/coredns/middleware/pkg/singleflight"
-	"github.com/miekg/coredns/middleware/proxy"
-	"github.com/miekg/coredns/middleware/test"
+	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/middleware/pkg/dnsrecorder"
+	"github.com/coredns/coredns/middleware/pkg/singleflight"
+	"github.com/coredns/coredns/middleware/pkg/tls"
+	"github.com/coredns/coredns/middleware/proxy"
+	"github.com/coredns/coredns/middleware/test"
 
 	etcdc "github.com/coreos/etcd/client"
 	"github.com/mholt/caddy"
@@ -28,10 +29,11 @@ func newEtcdMiddleware() *Etcd {
 	ctxt, _ = context.WithTimeout(context.Background(), etcdTimeout)
 
 	endpoints := []string{"http://localhost:2379"}
-	client, _ := newEtcdClient(endpoints, "", "", "")
+	tlsc, _ := tls.NewTLSConfigFromArgs()
+	client, _ := newEtcdClient(endpoints, tlsc)
 
 	return &Etcd{
-		Proxy:      proxy.New([]string{"8.8.8.8:53"}),
+		Proxy:      proxy.NewLookup([]string{"8.8.8.8:53"}),
 		PathPrefix: "skydns",
 		Ctx:        context.Background(),
 		Inflight:   &singleflight.Group{},

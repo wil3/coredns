@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/miekg/coredns/core/dnsserver"
-	"github.com/miekg/coredns/middleware"
-	"github.com/miekg/coredns/middleware/file"
-	"github.com/miekg/coredns/middleware/metrics"
-	"github.com/miekg/coredns/middleware/pkg/dnsutil"
-	"github.com/miekg/coredns/middleware/proxy"
+	"github.com/coredns/coredns/core/dnsserver"
+	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/file"
+	"github.com/coredns/coredns/middleware/metrics"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware/proxy"
 
 	"github.com/mholt/caddy"
 )
@@ -153,7 +153,7 @@ func autoParse(c *caddy.Controller) (Auto, error) {
 					if err != nil {
 						return a, err
 					}
-					a.loader.proxy = proxy.New(ups)
+					a.loader.proxy = proxy.NewLookup(ups)
 
 				default:
 					t, _, e := file.TransferParse(c, false)

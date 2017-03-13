@@ -1,6 +1,8 @@
 package main
 
-import "github.com/miekg/coredns/coremain"
+//go:generate go run directives_generate.go
+
+import "github.com/coredns/coredns/coremain"
 
 func main() {
 	coremain.Run()

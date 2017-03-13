@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/miekg/coredns/middleware/test"
+	"github.com/coredns/coredns/middleware/test"
 
 	"github.com/mholt/caddy"
 	"github.com/miekg/dns"
@@ -105,7 +105,7 @@ var dnsTestCases = []test.Case{
 	},
 	//TODO: Fix below to all use test.SRV not test.A!
 	{
-		Qname: "_*._*.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*._TcP.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.SRV("_http._tcp.svc-1-a.test-1.svc.cluster.local.      303    IN    SRV 10 100 80 svc-1-a.test-1.svc.cluster.local."),
@@ -113,12 +113,12 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*._*.bogusservice.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.*.bogusservice.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
-		Qname: "_*._*.svc-1-a.*.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.any.svc-1-a.*.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.SRV("_http._tcp.svc-1-a.test-1.svc.cluster.local.      303    IN    SRV 10 100 80 svc-1-a.test-1.svc.cluster.local."),
@@ -126,7 +126,7 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*._*.svc-1-a.any.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "ANY.*.svc-1-a.any.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.SRV("_http._tcp.svc-1-a.test-1.svc.cluster.local.      303    IN    SRV 10 100 80 svc-1-a.test-1.svc.cluster.local."),
@@ -134,17 +134,17 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*._*.bogusservice.*.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.*.bogusservice.*.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
-		Qname: "_*._*.bogusservice.any.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.*.bogusservice.any.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
-		Qname: "_c-port._*.*.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "_c-port._UDP.*.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.SRV("_c-port._udp.svc-c.test-1.svc.cluster.local.      303    IN    SRV 10 100 1234 svc-c.test-1.svc.cluster.local."),
@@ -153,7 +153,7 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*._tcp.any.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*._tcp.any.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode: dns.RcodeSuccess,
 		Answer: []dns.RR{
 			test.SRV("_http._tcp.svc-1-a.test-1.svc.cluster.local.      303    IN    SRV 10 100 80 svc-1-a.test-1.svc.cluster.local."),
@@ -162,12 +162,12 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*._*.any.test-2.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.*.any.test-2.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
-		Qname: "_*._*.*.test-2.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.*.*.test-2.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
@@ -180,18 +180,23 @@ var dnsTestCases = []test.Case{
 		},
 	},
 	{
-		Qname: "_*.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
-		Qname: "_*._not-udp-or-tcp.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
+		Qname: "*._not-udp-or-tcp.svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
 		Answer: []dns.RR{},
 	},
 	{
 		Qname: "svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeSRV,
 		Rcode:  dns.RcodeNameError,
+		Answer: []dns.RR{},
+	},
+	{
+		Qname: "10-20-0-101.test-1.pod.cluster.local.", Qtype: dns.TypeA,
+		Rcode:  dns.RcodeServerFailure,
 		Answer: []dns.RR{},
 	},
 	{
@@ -213,6 +218,158 @@ var dnsTestCases = []test.Case{
 			test.PTR("115.0.0.10.in-addr.arpa.      303    IN      PTR       svc-c.test-1.svc.cluster.local."),
 		},
 	},
+	{
+		Qname: "dns-version.cluster.local.", Qtype: dns.TypeTXT,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.TXT("dns-version.cluster.local. 28800 IN TXT \"1.0.0\""),
+		},
+	},
+	{
+		Qname: "next-in-chain.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("next-in-chain.              0       IN      A       192.0.2.53"),
+		},
+	},
+}
+
+var dnsTestCasesPodsInsecure = []test.Case{
+	{
+		Qname: "10-20-0-101.test-1.pod.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("10-20-0-101.test-1.pod.cluster.local. 0 IN A    10.20.0.101"),
+		},
+	},
+	{
+		Qname: "10-20-0-101.test-X.pod.cluster.local.", Qtype: dns.TypeA,
+		Rcode:  dns.RcodeNameError,
+		Answer: []dns.RR{},
+	},
+}
+
+var dnsTestCasesPodsVerified = []test.Case{
+	{
+		Qname: "10-20-0-101.test-1.pod.cluster.local.", Qtype: dns.TypeA,
+		Rcode:  dns.RcodeNameError,
+		Answer: []dns.RR{},
+	},
+	{
+		Qname: "10-20-0-101.test-X.pod.cluster.local.", Qtype: dns.TypeA,
+		Rcode:  dns.RcodeNameError,
+		Answer: []dns.RR{},
+	},
+}
+
+var dnsTestCasesCidrReverseZone = []test.Case{
+	{
+		Qname: "123.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode:  dns.RcodeSuccess,
+		Answer: []dns.RR{},
+	},
+	{
+		Qname: "100.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("100.0.0.10.in-addr.arpa.      303    IN      PTR       svc-1-a.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		Qname: "110.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("115.0.0.10.in-addr.arpa.      303    IN      PTR       svc-1-b.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		Qname: "115.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("115.0.0.10.in-addr.arpa.      303    IN      PTR       svc-c.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		Qname: "next-in-chain.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("next-in-chain.              0       IN      A       192.0.2.53"),
+		},
+	},
+}
+
+var dnsTestCasesPartialCidrReverseZone = []test.Case{
+	{
+		// In exposed range, record not present = OK + No data
+		Qname: "99.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode:  dns.RcodeSuccess,
+		Answer: []dns.RR{},
+	},
+	{
+		// In exposed range, record present = OK + Data
+		Qname: "100.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("100.0.0.10.in-addr.arpa.      303    IN      PTR       svc-1-a.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		// In exposed range, record present = OK + Data
+		Qname: "110.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("115.0.0.10.in-addr.arpa.      303    IN      PTR       svc-1-b.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		// Out of exposed range, record present = pass to next middleware (not existing in test) = FAIL
+		Qname: "115.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode:  dns.RcodeServerFailure,
+		Answer: []dns.RR{},
+	},
+	{
+		Qname: "next-in-chain.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("next-in-chain.              0       IN      A       192.0.2.53"),
+		},
+	},
+}
+
+var dnsTestCasesAllNSExposed = []test.Case{
+	{
+		Qname: "svc-1-a.test-1.svc.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("svc-1-a.test-1.svc.cluster.local.      303    IN      A       10.0.0.100"),
+		},
+	},
+	{
+		Qname: "svc-c.test-2.svc.cluster.local.", Qtype: dns.TypeA,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.A("svc-c.test-1.svc.cluster.local.      303    IN      A       10.0.0.120"),
+		},
+	},
+	{
+		Qname: "123.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode:  dns.RcodeSuccess,
+		Answer: []dns.RR{},
+	},
+	{
+		Qname: "100.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("100.0.0.10.in-addr.arpa.      303    IN      PTR       svc-1-a.test-1.svc.cluster.local."),
+		},
+	},
+	{
+		Qname: "120.0.0.10.in-addr.arpa.", Qtype: dns.TypePTR,
+		Rcode: dns.RcodeSuccess,
+		Answer: []dns.RR{
+			test.PTR("120.0.0.10.in-addr.arpa.      303    IN      PTR       svc-c.test-2.svc.cluster.local."),
+		},
+	},
 }
 
 func createTestServer(t *testing.T, corefile string) (*caddy.Instance, string) {
@@ -229,25 +386,15 @@ func createTestServer(t *testing.T, corefile string) (*caddy.Instance, string) {
 	return server, udp
 }
 
-func TestKubernetesIntegration(t *testing.T) {
-	corefile :=
-		`.:0 {
-    kubernetes cluster.local 0.0.10.in-addr.arpa {
-                endpoint http://localhost:8080
-		#endpoint https://kubernetes/ 
-		#tls admin.pem admin-key.pem ca.pem
-		#tls k8s_auth/client2.crt k8s_auth/client2.key k8s_auth/ca2.crt
-		namespaces test-1
-    }
-`
+func doIntegrationTests(t *testing.T, corefile string, testCases []test.Case) {
 	server, udp := createTestServer(t, corefile)
 	defer server.Stop()
 
 	// Work-around for timing condition that results in no-data being returned in
 	// test environment.
-	time.Sleep(5 * time.Second)
+	time.Sleep(1 * time.Second)
 
-	for _, tc := range dnsTestCases {
+	for _, tc := range testCases {
 
 		dnsClient := new(dns.Client)
 		dnsMessage := new(dns.Msg)
@@ -270,4 +417,87 @@ func TestKubernetesIntegration(t *testing.T) {
 
 		//TODO: Check the actual RR values
 	}
+}
+
+func TestKubernetesIntegration(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local 0.0.10.in-addr.arpa {
+                endpoint http://localhost:8080
+		#endpoint https://kubernetes/ 
+		#tls admin.pem admin-key.pem ca.pem
+		#tls k8s_auth/client2.crt k8s_auth/client2.key k8s_auth/ca2.crt
+		namespaces test-1
+		pods disabled
+    }
+	erratic . {
+		drop 0
+	}
+`
+	doIntegrationTests(t, corefile, dnsTestCases)
+}
+
+func TestKubernetesIntegrationPodsInsecure(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local 0.0.10.in-addr.arpa {
+                endpoint http://localhost:8080
+		namespaces test-1
+		pods insecure
+    }
+`
+	doIntegrationTests(t, corefile, dnsTestCasesPodsInsecure)
+}
+
+func TestKubernetesIntegrationPodsVerified(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local 0.0.10.in-addr.arpa {
+                endpoint http://localhost:8080
+                namespaces test-1
+                pods verified
+    }
+`
+	doIntegrationTests(t, corefile, dnsTestCasesPodsVerified)
+}
+
+func TestKubernetesIntegrationCidrReverseZone(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local {
+                endpoint http://localhost:8080
+                namespaces test-1
+				cidrs 10.0.0.0/24				
+    }
+	erratic . {
+		drop 0
+	}
+`
+	doIntegrationTests(t, corefile, dnsTestCasesCidrReverseZone)
+}
+
+func TestKubernetesIntegrationPartialCidrReverseZone(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local {
+                endpoint http://localhost:8080
+                namespaces test-1
+				cidrs 10.0.0.96/28 10.0.0.120/32
+    }
+	erratic . {
+		drop 0
+	}
+`
+	doIntegrationTests(t, corefile, dnsTestCasesPartialCidrReverseZone)
+}
+
+func TestKubernetesIntegrationAllNSExposed(t *testing.T) {
+	corefile :=
+		`.:0 {
+    kubernetes cluster.local {
+                endpoint http://localhost:8080
+				cidrs 10.0.0.0/24
+    }
+`
+	doIntegrationTests(t, corefile, dnsTestCasesAllNSExposed)
 }

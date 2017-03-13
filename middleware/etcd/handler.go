@@ -3,11 +3,11 @@ package etcd
 import (
 	"errors"
 
-	"github.com/miekg/coredns/middleware"
-	"github.com/miekg/coredns/middleware/etcd/msg"
-	"github.com/miekg/coredns/middleware/pkg/debug"
-	"github.com/miekg/coredns/middleware/pkg/dnsutil"
-	"github.com/miekg/coredns/request"
+	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/etcd/msg"
+	"github.com/coredns/coredns/middleware/pkg/debug"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/request"
 
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
@@ -89,7 +89,8 @@ func (e *Etcd) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 	}
 
 	if e.IsNameError(err) {
-		return middleware.BackendError(e, zone, dns.RcodeNameError, state, debug, err, opt)
+		// Make err nil when returning here, so we don't log spam for NXDOMAIN.
+		return middleware.BackendError(e, zone, dns.RcodeNameError, state, debug, nil /* err */, opt)
 	}
 	if err != nil {
 		return middleware.BackendError(e, zone, dns.RcodeServerFailure, state, debug, err, opt)

@@ -5,10 +5,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/miekg/coredns/core/dnsserver"
-	"github.com/miekg/coredns/middleware"
-	"github.com/miekg/coredns/middleware/pkg/dnsutil"
-	"github.com/miekg/coredns/middleware/proxy"
+	"github.com/coredns/coredns/core/dnsserver"
+	"github.com/coredns/coredns/middleware"
+	"github.com/coredns/coredns/middleware/pkg/dnsutil"
+	"github.com/coredns/coredns/middleware/proxy"
 
 	"github.com/mholt/caddy"
 )
@@ -110,7 +110,7 @@ func fileParse(c *caddy.Controller) (Zones, error) {
 					if err != nil {
 						return Zones{}, err
 					}
-					prxy = proxy.New(ups)
+					prxy = proxy.NewLookup(ups)
 				}
 
 				for _, origin := range origins {
