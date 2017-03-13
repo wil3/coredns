@@ -26,5 +26,6 @@ import (
 	_ "github.com/miekg/coredns/middleware/rewrite"
 	_ "github.com/miekg/coredns/middleware/root"
 	_ "github.com/miekg/coredns/middleware/secondary"
+	_ "github.com/wil3/sddns"
 	_ "github.com/miekg/coredns/middleware/whoami"
 )
