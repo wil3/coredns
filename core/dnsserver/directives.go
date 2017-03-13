@@ -89,6 +89,9 @@ var directives = []string{
 
 	"dnssec",
 	"file",
+
+	"sddns",
+
 	"auto",
 	"secondary",
 	"etcd",
